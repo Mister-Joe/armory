@@ -117,10 +117,11 @@ def generate_default_configs():
 
 
 def get_modules(module_path):
-    modules = [name for _, name, _ in pkgutil.walk_packages([module_path])]
-    if "templates" in modules:
-        modules.pop(modules.index("templates"))
-    return sorted(modules)
+    modules = {}
+    for importer, name, _ in pkgutil.walk_packages([module_path]):
+        if name != "templates":
+            modules[name] = importer.path
+    return modules
 
 
 def load_module(module_path):
@@ -170,22 +171,17 @@ def list_modules(silent=False):
 def list_reports(silent=False):
     config = get_config_options()
     custom_path = config.get("ARMORY_CUSTOM_REPORTS", None)
-
     modules = {}
-
             
-    for m in get_modules(os.path.join(PATH, "armory_main/included/reports")):
-        modules[m] = os.path.join(PATH, "armory_main/included/reports")
-
+    modules.update(get_modules(os.path.join(PATH, "armory_main/included/reports")))
+        
     if custom_path:
         for r in custom_path:
-            for m in get_modules(r):
-                modules[m] = r
+            modules.update(get_modules(r))
     
     if not silent:
-        
         print("Available reports:")
-        for m in sorted(list(set(modules.keys()))):
+        for m in sorted(modules.keys()):
             print("\t%s" % m)   
     else:
         return modules
