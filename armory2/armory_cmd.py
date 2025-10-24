@@ -117,11 +117,9 @@ def generate_default_configs():
 
 
 def get_modules(module_path):
-    modules = []
-    for root, dirs, files in os.walk(module_path):
-        for _, name, _ in pkgutil.iter_modules([root]):
-            if name != "templates":
-                modules.append(name)
+    modules = [name for _, name, _ in pkgutil.walk_packages([module_path])]
+    if "templates" in modules:
+        modules.pop(modules.index("templates"))
     return sorted(modules)
 
 
